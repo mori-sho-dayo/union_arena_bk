@@ -774,6 +774,11 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
     setBattleLog(prev => [...prev, { id: Date.now(), message, timestamp: new Date() }]);
   };
 
+  const clearBattleLog = () => {
+    setBattleLog([]);
+    addBattleLog('バトルログをクリアしました');
+  };
+
   // EffectProcessorの初期化
   useEffect(() => {
     if (!effectProcessor) {
@@ -1256,6 +1261,7 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
     }
   };
 
+
   // チュートリアルシステム
   const tutorialSteps = [
     {
@@ -1401,6 +1407,7 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
             </div>
             <span className="phase-name">{PHASE_DISPLAY_NAMES[gameState.gamePhase]}</span>
           </div>
+          
           <div className="ap-tracker">
             <span className="ap-label">AP</span>
             <div className="ap-orbs">
@@ -1479,165 +1486,24 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
         </div>
       </div>
 
-      {/* ライフ表示 */}
-      <div className="life-display">
-        <div className="player-life">
-          <span className="life-label">プレイヤー</span>
-          <div className="life-bar">
-            <div 
-              className="life-fill player-life-fill"
-              style={{ width: `${playerLifeManager.getLifePercentage()}%` }}
-            ></div>
-            <span className="life-text">{playerLifeManager.getCurrentLife()}</span>
-          </div>
-        </div>
-        <div className="opponent-life">
-          <span className="life-label">対戦相手</span>
-          <div className="life-bar">
-            <div 
-              className="life-fill opponent-life-fill"
-              style={{ width: `${opponentLifeManager.getLifePercentage()}%` }}
-            ></div>
-            <span className="life-text">{opponentLifeManager.getCurrentLife()}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* メインゲームエリア */}
-      <div className="main-game-area">
-        {/* 相手エリア */}
-        <div className="opponent-section">
-          <div className="opponent-info">
-            <span>手札: {gameState.opponentHand.length}枚</span>
-            <span>デッキ: {gameState.opponentDeck.length}枚</span>
-          </div>
-          
-          {/* 相手のエナジーライン */}
-          <div className="field-line opponent-energy-line">
-            <h4>相手 エナジーライン</h4>
-            <div className="line-slots">
-              {gameState.opponentEnergyLine.map((card, index) => (
-                <div key={index} className="line-slot opponent-slot">
-                  {card ? (
-                    <img 
-                      src={getCardImageUrl(card.card_id)}
-                      alt={card.name}
-                      className="field-card opponent-card"
-                    />
-                  ) : (
-                    <div className="empty-slot opponent-empty">
-                      <span>空</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* 相手のフロントライン */}
-          <div className="field-line opponent-front-line">
-            <h4>相手 フロントライン</h4>
-            <div className="line-slots">
-                              {gameState.opponentFrontLine.map((card, index) => (
-                  <div key={index} className="line-slot opponent-slot">
-                    {card ? (
-                      <img 
-                        src={getCardImageUrl(card.card_id)}
-                        alt={card.name}
-                        className="field-card opponent-card"
-                      />
-                    ) : (
-                      <div className="empty-slot opponent-empty">
-                        <span>空</span>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-
-
-          {/* 相手のエナジー表示 */}
-          <div className="energy-display opponent-energy-display">
-            <h4>相手エナジー</h4>
-            <div className="energy-row">
-              {Object.entries(gameState.opponentEnergy).map(([color, amount]) => (
-                <div key={color} className="energy-item">
-                  <img src={getEnergyImageUrl(color)} alt={`${color}エナジー`} />
-                  <span>{amount}</span>
-                </div>
-              ))}
+      {/* ライフ・エナジー表示（4分割） */}
+      <div className="life-energy-four-panel">
+        {/* プレイヤーのライフ */}
+        <div className="panel player-life-panel">
+          <div className="life-section">
+            <span className="life-label">プレイヤー</span>
+            <div className="life-bar">
+              <div 
+                className="life-fill player-life-fill"
+                style={{ width: `${playerLifeManager.getLifePercentage()}%` }}
+              ></div>
+              <span className="life-text">{playerLifeManager.getCurrentLife()}</span>
             </div>
           </div>
         </div>
 
-        {/* 中央エリア - バトルログと墓地 */}
-        <div className="center-section">
-          {/* 相手の墓地 */}
-          <div className="graveyard-section">
-            <h4>相手墓地</h4>
-            <div 
-              className="graveyard-pile opponent-graveyard"
-              onClick={() => setShowOpponentGraveyard(true)}
-            >
-                              {gameState.opponentGraveyard.length > 0 ? (
-                  <>
-                    <img 
-                      src={getCardImageUrl(gameState.opponentGraveyard[gameState.opponentGraveyard.length - 1].card_id)}
-                      alt="墓地トップ"
-                      className="graveyard-card-image"
-                    />
-                    <div className="graveyard-count opponent-count">
-                      {gameState.opponentGraveyard.length}
-                    </div>
-                  </>
-                ) : (
-                  <span className="empty-graveyard">空</span>
-                )}
-            </div>
-          </div>
-
-          {/* バトルログ */}
-          <div className="battle-log">
-            <h3>バトルログ</h3>
-            <div className="log-messages">
-              {battleLog.slice(-8).map(log => (
-                <div key={log.id} className="log-message">
-                  {log.message}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* プレイヤーの墓地 */}
-          <div className="graveyard-section">
-            <h4>あなたの墓地</h4>
-            <div 
-              className="graveyard-pile player-graveyard"
-              onClick={() => setShowPlayerGraveyard(true)}
-            >
-              {gameState.playerGraveyard.length > 0 ? (
-                <>
-                  <img 
-                    src={getCardImageUrl(gameState.playerGraveyard[gameState.playerGraveyard.length - 1].card_id)}
-                    alt="墓地トップ"
-                    className="graveyard-card-image"
-                  />
-                  <div className="graveyard-count player-count">
-                    {gameState.playerGraveyard.length}
-                  </div>
-                </>
-              ) : (
-                <span className="empty-graveyard">空</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* プレイヤーエリア */}
-        <div className="player-section">
-          {/* プレイヤーのエナジー表示 */}
+        {/* あなたのエナジー */}
+        <div className="panel player-energy-panel">
           <div className="energy-display player-energy-display">
             <h4>あなたのエナジー</h4>
             <div className="energy-row">
@@ -1663,56 +1529,282 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
               </div>
             )}
           </div>
+        </div>
 
-          {/* プレイヤーのフロントライン */}
-          <div className="field-line player-front-line">
-            <h4>あなたの フロントライン</h4>
-            <div className="line-slots">
-              {gameState.playerFrontLine.map((card, index) => {
-                const dragOverClass = getDragOverClass('front', index);
-                const fieldDragEnabled = card && isDragEnabled(card, { 
-                  type: 'field', 
-                  line: 'front', 
-                  position: index 
-                });
-                
-                return (
-                  <div 
-                    key={index} 
-                    className={`line-slot player-slot front-slot ${
-                      selectedCard ? 'can-place' : ''
-                    } ${
-                      isSlotHighlighted('front', index) ? 'highlighted' : ''
-                    } ${dragOverClass}`}
-                    onClick={() => handleLineSlotClick('front', index)}
-                    onDragOver={(e) => handleDragOver(e, 'front', index)}
-                    onDragLeave={handleDragLeave}
-                    onDrop={(e) => handleDrop(e, 'front', index)}
-                    onMouseEnter={() => {
-                      if (card) {
-                        setHoveredCard(card);
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      if (card) {
-                        setHoveredCard(null);
-                      }
-                    }}
-                  >
+        {/* 相手エナジー */}
+        <div className="panel opponent-energy-panel">
+          <div className="energy-display opponent-energy-display">
+            <h4>相手エナジー</h4>
+            <div className="energy-row">
+              {Object.entries(gameState.opponentEnergy).map(([color, amount]) => (
+                <div key={color} className="energy-item">
+                  <img src={getEnergyImageUrl(color)} alt={`${color}エナジー`} />
+                  <span>{amount}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 対戦相手のライフ */}
+        <div className="panel opponent-life-panel">
+          <div className="life-section">
+            <span className="life-label">対戦相手</span>
+            <div className="life-bar">
+              <div 
+                className="life-fill opponent-life-fill"
+                style={{ width: `${opponentLifeManager.getLifePercentage()}%` }}
+              ></div>
+              <span className="life-text">{opponentLifeManager.getCurrentLife()}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3分割レイアウト */}
+      <div className="three-panel-layout">
+        {/* 左側パネル - バトルログ */}
+        <div className="left-panel">
+          <div className="battle-log">
+            <div className="battle-log-header">
+              <h3>バトルログ</h3>
+              <button 
+                className="clear-log-button"
+                onClick={clearBattleLog}
+                title="バトルログをクリア"
+              >
+                🗑️
+              </button>
+            </div>
+            <div className="log-messages">
+              {battleLog.map(log => (
+                <div key={log.id} className="log-message">
+                  {log.message}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 中央パネル - フィールド */}
+        <div className="center-panel">
+          {/* 相手エリア */}
+          <div className="opponent-section">
+            <div className="opponent-info">
+              <span>手札: {gameState.opponentHand.length}枚</span>
+              <span>デッキ: {gameState.opponentDeck.length}枚</span>
+            </div>
+            
+            {/* 相手のエナジーライン */}
+            <div className="field-line opponent-energy-line">
+              <h4>相手 エナジーライン</h4>
+              <div className="line-slots">
+                {gameState.opponentEnergyLine.map((card, index) => (
+                  <div key={index} className="line-slot opponent-slot">
                     {card ? (
-                      <div className="field-card-container">
+                      <img 
+                        src={getCardImageUrl(card.card_id)}
+                        alt={card.name}
+                        className="field-card opponent-card"
+                      />
+                    ) : (
+                      <div className="empty-slot opponent-empty">
+                        <span>空</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 相手のフロントライン */}
+            <div className="field-line opponent-front-line">
+              <h4>相手 フロントライン</h4>
+              <div className="line-slots">
+                {gameState.opponentFrontLine.map((card, index) => (
+                  <div key={index} className="line-slot opponent-slot">
+                    {card ? (
+                      <img 
+                        src={getCardImageUrl(card.card_id)}
+                        alt={card.name}
+                        className="field-card opponent-card"
+                      />
+                    ) : (
+                      <div className="empty-slot opponent-empty">
+                        <span>空</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+          {/* プレイヤーエリア */}
+          <div className="player-section">
+
+            {/* プレイヤーのフロントライン */}
+            <div className="field-line player-front-line">
+              <h4>あなたの フロントライン</h4>
+              <div className="line-slots">
+                {gameState.playerFrontLine.map((card, index) => {
+                  const dragOverClass = getDragOverClass('front', index);
+                  const fieldDragEnabled = card && isDragEnabled(card, { 
+                    type: 'field', 
+                    line: 'front', 
+                    position: index 
+                  });
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className={`line-slot player-slot front-slot ${
+                        selectedCard ? 'can-place' : ''
+                      } ${
+                        isSlotHighlighted('front', index) ? 'highlighted' : ''
+                      } ${dragOverClass}`}
+                      onClick={() => handleLineSlotClick('front', index)}
+                      onDragOver={(e) => handleDragOver(e, 'front', index)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, 'front', index)}
+                      onMouseEnter={() => {
+                        if (card) {
+                          setHoveredCard(card);
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        if (card) {
+                          setHoveredCard(null);
+                        }
+                      }}
+                    >
+                      {card ? (
+                        <div className="field-card-container">
+                          <img 
+                            src={getCardImageUrl(card.card_id)}
+                            alt={card.name}
+                            className={`field-card player-card ${fieldDragEnabled ? 'draggable' : ''}`}
+                            draggable={fieldDragEnabled}
+                            onDragStart={(e) => handleDragStart(e, card, { 
+                              type: 'field', 
+                              line: 'front', 
+                              position: index 
+                            })}
+                            onDragEnd={handleDragEnd}
+                          />
+                          {/* Activate効果ボタン */}
+                          {cardDetails[card.card_id]?.data?.能力?.includes('[Activate: Main]') && 
+                           !card.effectUsed && 
+                           gameState.currentTurn === 'player' && 
+                           gameState.gamePhase === 'main' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                activateMainEffect(card, 'front', index);
+                              }}
+                              className="activate-effect-btn"
+                              title="Activate効果を使用"
+                            >
+                              ⚡
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="empty-slot player-empty">
+                          {selectedCard && phaseManager.canPerformAction('playCard') ? <span>配置</span> : selectedCard ? <span>配置不可</span> : <span>空</span>}
+                          {isDragging && isSlotHighlighted('front', index) && (
+                            <div className="drag-guide-text">ドロップ可能</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* プレイヤーのエナジーライン */}
+            <div className="field-line player-energy-line">
+              <h4>あなたの エナジーライン</h4>
+              <div className="line-slots">
+                {gameState.playerEnergyLine.map((card, index) => {
+                  const dragOverClass = getDragOverClass('energy', index);
+                  const fieldDragEnabled = card && isDragEnabled(card, { 
+                    type: 'field', 
+                    line: 'energy', 
+                    position: index 
+                  });
+                  
+                  // カードの発生エナジー情報を取得
+                  const cardDetail = card ? cardDetails[card.card_id]?.data : null;
+                  const generatedEnergy = cardDetail?.発生エナジー || '';
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className={`line-slot player-slot energy-slot ${
+                        selectedCard ? 'can-place' : ''
+                      } ${
+                        isSlotHighlighted('energy', index) ? 'highlighted' : ''
+                      } ${dragOverClass}`}
+                      onClick={() => handleLineSlotClick('energy', index)}
+                      onDragOver={(e) => handleDragOver(e, 'energy', index)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, 'energy', index)}
+                      onMouseEnter={() => {
+                        if (card) {
+                          setHoveredCard(card);
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        if (card) {
+                          setHoveredCard(null);
+                        }
+                      }}
+                    >
+                    {card ? (
+                      <div className="field-card-container energy-card-container">
                         <img 
                           src={getCardImageUrl(card.card_id)}
                           alt={card.name}
-                          className={`field-card player-card ${fieldDragEnabled ? 'draggable' : ''}`}
+                          className={`field-card player-card energy-card ${fieldDragEnabled ? 'draggable' : ''}`}
                           draggable={fieldDragEnabled}
                           onDragStart={(e) => handleDragStart(e, card, { 
                             type: 'field', 
-                            line: 'front', 
+                            line: 'energy', 
                             position: index 
                           })}
                           onDragEnd={handleDragEnd}
                         />
+                        
+                        {/* 発生エナジー表示オーバーレイ */}
+                        {generatedEnergy && (
+                          <div className="energy-overlay">
+                            <div className="energy-overlay-content">
+                              <span className="energy-label">発生:</span>
+                              <div className="energy-icons">
+                                {generatedEnergy.split('*').map((part, idx) => {
+                                  if (idx % 2 === 1) {
+                                    // *で囲まれた部分（エナジーアイコン）
+                                    const imageName = part.replace(/[:*?"<>|]/g, '');
+                                    return (
+                                      <img
+                                        key={idx}
+                                        src={getEnergyImageUrl(imageName)}
+                                        alt={imageName}
+                                        className="energy-icon"
+                                        title={`${imageName}エナジー`}
+                                      />
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
                         {/* Activate効果ボタン */}
                         {cardDetails[card.card_id]?.data?.能力?.includes('[Activate: Main]') && 
                          !card.effectUsed && 
@@ -1721,7 +1813,7 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              activateMainEffect(card, 'front', index);
+                              activateMainEffect(card, 'energy', index);
                             }}
                             className="activate-effect-btn"
                             title="Activate効果を使用"
@@ -1733,163 +1825,51 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
                     ) : (
                       <div className="empty-slot player-empty">
                         {selectedCard && phaseManager.canPerformAction('playCard') ? <span>配置</span> : selectedCard ? <span>配置不可</span> : <span>空</span>}
-                        {isDragging && isSlotHighlighted('front', index) && (
+                        {isDragging && isSlotHighlighted('energy', index) && (
                           <div className="drag-guide-text">ドロップ可能</div>
                         )}
                       </div>
                     )}
                   </div>
                 );
-              })}
+                })}
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* プレイヤーのエナジーライン */}
-          <div className="field-line player-energy-line">
-            <h4>あなたの エナジーライン</h4>
-            <div className="line-slots">
-              {gameState.playerEnergyLine.map((card, index) => {
-                const dragOverClass = getDragOverClass('energy', index);
-                const fieldDragEnabled = card && isDragEnabled(card, { 
-                  type: 'field', 
-                  line: 'energy', 
-                  position: index 
-                });
-                
-                // カードの発生エナジー情報を取得
-                const cardDetail = card ? cardDetails[card.card_id]?.data : null;
-                const generatedEnergy = cardDetail?.発生エナジー || '';
+        {/* 右側パネル - 手札 */}
+        <div className="right-panel">
+          <div className="player-hand">
+            <h3>手札 ({gameState.playerHand.length}枚)</h3>
+            <div className="hand-cards-grid">
+              {gameState.playerHand.map((card, index) => {
+                const isSelected = selectedCard?.uniqueId === card.uniqueId;
+                const dragEnabled = isDragEnabled(card, { type: 'hand' });
                 
                 return (
                   <div 
-                    key={index} 
-                    className={`line-slot player-slot energy-slot ${
-                      selectedCard ? 'can-place' : ''
-                    } ${
-                      isSlotHighlighted('energy', index) ? 'highlighted' : ''
-                    } ${dragOverClass}`}
-                    onClick={() => handleLineSlotClick('energy', index)}
-                    onDragOver={(e) => handleDragOver(e, 'energy', index)}
-                    onDragLeave={handleDragLeave}
-                    onDrop={(e) => handleDrop(e, 'energy', index)}
-                    onMouseEnter={() => {
-                      if (card) {
-                        setHoveredCard(card);
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      if (card) {
-                        setHoveredCard(null);
-                      }
-                    }}
+                    key={card.uniqueId} 
+                    className={`hand-card-small ${isSelected ? 'selected' : ''} ${dragEnabled ? 'draggable' : ''}`}
+                    draggable={dragEnabled}
+                    onDragStart={(e) => handleDragStart(e, card, { type: 'hand' })}
+                    onDragEnd={handleDragEnd}
+                    onClick={() => handleCardClick(card)}
+                    onMouseEnter={() => setHoveredCard(card)}
+                    onMouseLeave={() => setHoveredCard(null)}
                   >
-                  {card ? (
-                    <div className="field-card-container energy-card-container">
-                      <img 
-                        src={getCardImageUrl(card.card_id)}
-                        alt={card.name}
-                        className={`field-card player-card energy-card ${fieldDragEnabled ? 'draggable' : ''}`}
-                        draggable={fieldDragEnabled}
-                        onDragStart={(e) => handleDragStart(e, card, { 
-                          type: 'field', 
-                          line: 'energy', 
-                          position: index 
-                        })}
-                        onDragEnd={handleDragEnd}
-                      />
-                      
-                      {/* 発生エナジー表示オーバーレイ */}
-                      {generatedEnergy && (
-                        <div className="energy-overlay">
-                          <div className="energy-overlay-content">
-                            <span className="energy-label">発生:</span>
-                            <div className="energy-icons">
-                              {generatedEnergy.split('*').map((part, idx) => {
-                                if (idx % 2 === 1) {
-                                  // *で囲まれた部分（エナジーアイコン）
-                                  const imageName = part.replace(/[:*?"<>|]/g, '');
-                                  return (
-                                    <img
-                                      key={idx}
-                                      src={getEnergyImageUrl(imageName)}
-                                      alt={imageName}
-                                      className="energy-icon"
-                                      title={`${imageName}エナジー`}
-                                    />
-                                  );
-                                }
-                                return null;
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Activate効果ボタン */}
-                      {cardDetails[card.card_id]?.data?.能力?.includes('[Activate: Main]') && 
-                       !card.effectUsed && 
-                       gameState.currentTurn === 'player' && 
-                       gameState.gamePhase === 'main' && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            activateMainEffect(card, 'energy', index);
-                          }}
-                          className="activate-effect-btn"
-                          title="Activate効果を使用"
-                        >
-                          ⚡
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="empty-slot player-empty">
-                      {selectedCard && phaseManager.canPerformAction('playCard') ? <span>配置</span> : selectedCard ? <span>配置不可</span> : <span>空</span>}
-                      {isDragging && isSlotHighlighted('energy', index) && (
-                        <div className="drag-guide-text">ドロップ可能</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
+                    <img 
+                      src={getCardImageUrl(card.card_id)}
+                      alt={card.name}
+                      className="hand-card-image-small"
+                    />
+                    {dragEnabled && (
+                      <div className="drag-guide-text-small">ドラッグ可能</div>
+                    )}
+                  </div>
+                );
               })}
             </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* 手札エリア */}
-      <div className="hand-section">
-        <div className="player-hand">
-          <h3>手札 ({gameState.playerHand.length}枚)</h3>
-          <div className="hand-cards">
-            {gameState.playerHand.map((card, index) => {
-              const isSelected = selectedCard?.uniqueId === card.uniqueId;
-              const dragEnabled = isDragEnabled(card, { type: 'hand' });
-              
-              return (
-                <div 
-                  key={card.uniqueId} 
-                  className={`hand-card ${isSelected ? 'selected' : ''} ${dragEnabled ? 'draggable' : ''}`}
-                  draggable={dragEnabled}
-                  onDragStart={(e) => handleDragStart(e, card, { type: 'hand' })}
-                  onDragEnd={handleDragEnd}
-                  onClick={() => handleCardClick(card)}
-                  onMouseEnter={() => setHoveredCard(card)}
-                  onMouseLeave={() => setHoveredCard(null)}
-                >
-                  <img 
-                    src={getCardImageUrl(card.card_id)}
-                    alt={card.name}
-                    className="hand-card-image"
-                  />
-                  {dragEnabled && (
-                    <div className="drag-guide-text">ドラッグ可能</div>
-                  )}
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>
@@ -2177,6 +2157,7 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
           onNextPhase={nextPhase}
         />
       )}
+
     </div>
   );
 };
