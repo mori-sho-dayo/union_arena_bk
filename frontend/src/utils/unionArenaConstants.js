@@ -11,7 +11,7 @@ export const UNION_ARENA_PHASES = {
   
   export const PHASE_DISPLAY_NAMES = {
     [UNION_ARENA_PHASES.START]: 'スタートフェーズ',
-    [UNION_ARENA_PHASES.MOVEMENT]: 'ムーブメントフェーズ',
+    [UNION_ARENA_PHASES.MOVEMENT]: '移動フェーズ',
     [UNION_ARENA_PHASES.MAIN]: 'メインフェーズ',
     [UNION_ARENA_PHASES.END]: 'エンドフェーズ'
   };

@@ -9,21 +9,107 @@
     height: 100%;
     z-index: 500;
     background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(2px);
   }
+
+/* ウィンドウコンテナ */
+.movement-window {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(26, 26, 46, 0.95);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 600;
+  min-width: 600px;
+  max-width: 900px;
+}
+
+.movement-window-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: rgba(26, 26, 46, 0.9);
+  border-radius: 18px 18px 0 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: move;
+}
+
+.movement-window-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.movement-window-title span {
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.movement-minimize-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.movement-minimize-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.movement-window-content {
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.movement-window-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  justify-content: center;
+}
+
+.movement-next-phase-btn {
+  padding: 12px 24px;
+  background: linear-gradient(45deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.movement-next-phase-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(52, 152, 219, 0.5);
+}
   
   /* Movement Phase説明 */
   .movement-instructions {
-    position: fixed;
-    top: 80px;
-    right: 20px;
     background: linear-gradient(135deg, #128395 0%, #1a365d 100%);
     padding: 20px;
     border-radius: 15px;
     border: 2px solid #4299e1;
     box-shadow: 0 10px 30px rgba(66, 153, 225, 0.3);
-    max-width: 300px;
-    z-index: 600;
+    margin-bottom: 20px;
   }
   
   .movement-header {
@@ -57,19 +143,7 @@
     margin-bottom: 8px;
   }
   
-  /* 選択中キャラクター情報 */
-  .selected-character-info {
-    position: fixed;
-    top: 80px;
-    left: 20px;
-    background: linear-gradient(135deg, #553c9a 0%, #1a1a2e 100%);
-    padding: 20px;
-    border-radius: 15px;
-    border: 2px solid #805ad5;
-    box-shadow: 0 10px 30px rgba(128, 90, 213, 0.3);
-    max-width: 320px;
-    z-index: 600;
-  }
+  /* 選択中キャラクター情報 - 削除済み */
   
   .selected-card-display {
     display: flex;
@@ -131,12 +205,9 @@
   
   /* フィールドオーバーレイ */
   .movement-field-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
+    width: 100%;
     max-width: 800px;
+    margin: 0 auto;
   }
   
   .movement-front-line, .movement-energy-line {
@@ -263,6 +334,7 @@
     height: 100%;
     object-fit: cover;
     border-radius: 8px;
+    display: block;
   }
   
   /* キャラクター状態インジケーター */
@@ -410,15 +482,18 @@
   
   /* レスポンシブ対応 */
   @media (max-width: 768px) {
+    .movement-window {
+      min-width: 95vw;
+      max-width: 95vw;
+      top: 50%;
+    }
+    
     .movement-instructions, .selected-character-info {
-      position: static;
-      margin: 10px;
-      max-width: none;
+      margin: 10px 0;
     }
     
     .movement-field-overlay {
-      width: 95%;
-      top: 45%;
+      width: 100%;
     }
     
     .movement-line-slots {
@@ -451,6 +526,11 @@
   }
   
   @media (max-width: 480px) {
+    .movement-window {
+      min-width: 98vw;
+      max-width: 98vw;
+    }
+    
     .movement-line-slots {
       grid-template-columns: repeat(1, 1fr);
       gap: 8px;
@@ -468,6 +548,83 @@
       font-size: 11px;
     }
   }
+
+/* カード詳細ポップアップ */
+.movement-card-popup {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 700;
+  animation: popupFadeIn 0.3s ease;
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.movement-card-popup-content {
+  background: rgba(26, 26, 46, 0.95);
+  padding: 20px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.movement-popup-card-image {
+  width: 100%;
+  max-width: 120px;
+  height: auto;
+  border-radius: 8px;
+  border: 2px solid #4299e1;
+  margin: 0 auto;
+}
+
+.movement-popup-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.movement-popup-card-info h4 {
+  color: #63b3ed;
+  margin: 0;
+  font-size: 16px;
+  text-align: center;
+}
+
+.movement-popup-card-info p {
+  color: #e2e8f0;
+  margin: 0;
+  font-size: 12px;
+}
+
+.movement-popup-close-btn {
+  background: rgba(66, 153, 225, 0.2);
+  border: 1px solid #4299e1;
+  color: #63b3ed;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+}
+
+.movement-popup-close-btn:hover {
+  background: rgba(66, 153, 225, 0.3);
+  transform: translateY(-1px);
+}
+
   .debug-area {
     margin-top: 10px;
     background: rgba(0,0,0,0.8);

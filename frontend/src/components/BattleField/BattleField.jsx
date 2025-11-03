@@ -250,7 +250,7 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
       // Front LineからEnergy Lineへの移動は▼Step▼能力が必要
       if (fromLine === 'front' && toLine === 'energy') {
         const cardDetail = cardDetails[character.card_id]?.data;
-        if (!cardDetail?.能力?.includes('▼Step▼')) {
+        if (!cardDetail?.効果?.includes('*ステップ*')) {
           throw new Error('このキャラクターは▼Step▼能力を持たないため、エナジーラインに移動できません');
         }
       }
@@ -260,19 +260,23 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
       }
 
       // 移動実行
-      const newFromLine = [...fromLineArray];
-      const newToLine = [...toLineArray];
-      
-      newFromLine[fromPosition] = null;
-      newToLine[toPosition] = character;
-
       if (fromLine === 'front' && toLine === 'energy') {
+        // フロントラインからエナジーラインへの移動
+        const newFromLine = [...fromLineArray];
+        const newToLine = [...toLineArray];
+        newFromLine[fromPosition] = null;
+        newToLine[toPosition] = character;
         setGameState(prev => ({
           ...prev,
           playerFrontLine: newFromLine,
           playerEnergyLine: newToLine
         }));
       } else if (fromLine === 'energy' && toLine === 'front') {
+        // エナジーラインからフロントラインへの移動
+        const newFromLine = [...fromLineArray];
+        const newToLine = [...toLineArray];
+        newFromLine[fromPosition] = null;
+        newToLine[toPosition] = character;
         setGameState(prev => ({
           ...prev,
           playerEnergyLine: newFromLine,
@@ -280,10 +284,13 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
         }));
       } else if (fromLine === toLine) {
         // 同じライン内での移動
+        const newLine = [...fromLineArray];
+        newLine[fromPosition] = null;
+        newLine[toPosition] = character;
         if (fromLine === 'front') {
-          setGameState(prev => ({ ...prev, playerFrontLine: newFromLine }));
+          setGameState(prev => ({ ...prev, playerFrontLine: newLine }));
         } else {
-          setGameState(prev => ({ ...prev, playerEnergyLine: newFromLine }));
+          setGameState(prev => ({ ...prev, playerEnergyLine: newLine }));
         }
       }
 
@@ -444,23 +451,8 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
     // エナジーが変更された場合のログ出力
     if (energyChanged) {
       console.log('エナジー更新:', { 前: prevPlayerEnergy, 後: playerEnergy });
-      addBattleLog(`エナジー更新: ${Object.entries(playerEnergy).map(([color, amount]) => `${color}${amount}`).join(' ')}`);
     }
   }, [gameState.playerEnergyLine, gameState.opponentEnergyLine, cardDetails, energyManager]);
-
-  // エナジー更新インジケーターの自動非表示
-  useEffect(() => {
-    if (gameState.energyUpdateTimestamp) {
-      const timer = setTimeout(() => {
-        setGameState(prev => ({
-          ...prev,
-          energyUpdateTimestamp: null
-        }));
-      }, 3000); // 3秒後に非表示
-
-      return () => clearTimeout(timer);
-    }
-  }, [gameState.energyUpdateTimestamp]);
 
   // 勝利条件チェック
   useEffect(() => {
@@ -774,10 +766,6 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
     setBattleLog(prev => [...prev, { id: Date.now(), message, timestamp: new Date() }]);
   };
 
-  const clearBattleLog = () => {
-    setBattleLog([]);
-    addBattleLog('バトルログをクリアしました');
-  };
 
   // EffectProcessorの初期化
   useEffect(() => {
@@ -950,11 +938,32 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
           char ? { ...char, isResting: false } : null
         )
       }));
+
     }
 
     addBattleLog(`フェーズが${PHASE_DISPLAY_NAMES[nextPhase]}に進みました`);
     soundManager.playSFX('success');
   };
+
+  // 移動フェーズの自動スキップチェック
+  useEffect(() => {
+    if (gameState.gamePhase === UNION_ARENA_PHASES.MOVEMENT && 
+        gameState.currentTurn === 'player' && 
+        !gameOver && 
+        gameInitialized) {
+      // エナジーラインとフロントラインにカードが存在しない場合は自動的にスキップ
+      const hasCards = gameState.playerFrontLine.some(char => char !== null) || 
+                       gameState.playerEnergyLine.some(char => char !== null);
+      
+      if (!hasCards) {
+        addBattleLog('移動できるカードがないため、移動フェーズをスキップします');
+        setTimeout(() => {
+          nextPhase();
+        }, 500);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState.gamePhase, gameState.currentTurn, gameState.playerFrontLine, gameState.playerEnergyLine, gameOver, gameInitialized]);
 
   // ターン終了
   const endTurn = () => {
@@ -1096,7 +1105,7 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
       if (source.line === 'front') {
         // フロントラインからエナジーラインへの移動（Step能力チェック）
         const cardDetail = cardDetails[card.card_id]?.data;
-        if (cardDetail?.能力?.includes('▼Step▼')) {
+        if (cardDetail?.効果?.includes('*ステップ*')) {
           gameState.playerEnergyLine.forEach((slot, index) => {
             if (slot === null) availableSlots.push({ type: 'energy', index });
           });
@@ -1407,18 +1416,6 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
             </div>
             <span className="phase-name">{PHASE_DISPLAY_NAMES[gameState.gamePhase]}</span>
           </div>
-          
-          <div className="ap-tracker">
-            <span className="ap-label">AP</span>
-            <div className="ap-orbs">
-              {[...Array(apState.max)].map((_, i) => (
-                <div 
-                  key={i} 
-                  className={`ap-orb ${i < apState.current ? 'active' : 'used'}`}
-                />
-              ))}
-            </div>
-          </div>
         </div>
 
         <div className="header-right">
@@ -1523,11 +1520,6 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
                 </div>
               ))}
             </div>
-            {gameState.energyUpdateTimestamp && (
-              <div className="energy-update-indicator">
-                <span>✨ エナジー更新済み</span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -1568,13 +1560,6 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
           <div className="battle-log">
             <div className="battle-log-header">
               <h3>バトルログ</h3>
-              <button 
-                className="clear-log-button"
-                onClick={clearBattleLog}
-                title="バトルログをクリア"
-              >
-                🗑️
-              </button>
             </div>
             <div className="log-messages">
               {battleLog.map(log => (
@@ -2155,6 +2140,7 @@ const BattleField = ({ selectedDeck, duelMode, onBackToMenu }) => {
           isPlayerTurn={gameState.currentTurn === 'player'}
           currentPhase={gameState.gamePhase}
           onNextPhase={nextPhase}
+          onCardHover={setHoveredCard}
         />
       )}
 

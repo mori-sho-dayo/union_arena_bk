@@ -708,7 +708,7 @@
 
 .battle-log-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-bottom: 15px;
 }
@@ -739,7 +739,7 @@
 }
 
 .log-messages {
-  max-height: 150px;
+  max-height: 400px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -1910,7 +1910,7 @@
 .enhanced-card-preview {
   position: fixed;
   top: 50%;
-  right: 20px;
+  left: 20px;
   transform: translateY(-50%);
   z-index: 1000;
   width: 400px;
@@ -2072,7 +2072,7 @@
 @media (max-width: 1200px) {
   .enhanced-card-preview {
     width: 350px;
-    right: 10px;
+    left: 10px;
   }
   
   .preview-card-image {
